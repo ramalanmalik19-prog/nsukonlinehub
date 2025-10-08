@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NSUK e-Marketing</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: linear-gradient(to right, #0074D9, #FFDC00, #2ECC40);
+      color: #333;
+    }
+    header {
+      background-color: #001f3f;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    main {
+      padding: 2rem;
+      text-align: center;
+    }
+    .hidden {
+      display: none;
+    }
+    input, select, button, textarea {
+      margin: 0.5rem auto;
+      padding: 0.7rem;
+      width: 90%;
+      max-width: 400px;
+      display: block;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #0074D9;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .card, .sub-card {
+      background-color: white;
+      border-radius: 10px;
+      padding: 1rem;
+      margin: 1rem auto;
+      width: 80%;
+      max-width: 500px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      cursor: pointer;
+    }
+    .sub-card button {
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>NSUK e-Marketing Platform</h1>
+  </header>
+
+  <main>
+    <!-- Login/Register -->
+    <section id="auth-section">
+      <h2>Login / Register</h2>
+      <select id="user-type">
+        <option value="student">Student</option>
+        <option value="staff">Staff</option>
+        <option value="admin">Admin</option>
+      </select>
+      <input type="text" id="username" placeholder="Username" />
+      <input type="password" id="password" placeholder="Password" />
+      <textarea id="bio" placeholder="Enter your biography (for registration only)"></textarea>
+      <button onclick="login()">Login</button>
+      <button onclick="register()">Sign Up</button>
+    </section>
+
+    <!-- Home Page -->
+    <section id="home-section" class="hidden">
+      <h2>Welcome to NSUK e-Marketing</h2>
+      <div class="card" onclick="showSub('edc')">NSUK EDC</div>
+      <div class="card" onclick="showSub('hub')">NSUK Hub</div>
+      <div class="card" onclick="showSub('water')">NSUK Table Water</div>
+      <div class="card" onclick="showSub('press')">NSUK Printing Press</div>
+      <div class="card" onclick="showSub('store')">NSUK Store</div>
+      <button onclick="logout()">Logout</button>
+    </section>
+
+    <!-- Sub Products -->
+    <section id="sub-section" class="hidden">
+      <h3 id="sub-title"></h3>
+      <div id="sub-products"></div>
+      <button onclick="backToHome()">Back</button>
+    </section>
+
+    <!-- Payment Gateway -->
+    <section id="payment-section" class="hidden">
+      <h2>Payment Gateway</h2>
+      <input type="text" placeholder="Cardholder Name" />
+      <input type="text" placeholder="Card Number" />
+      <input type="text" placeholder="Expiry Date (MM/YY)" />
+      <input type="text" placeholder="CVV" />
+      <button onclick="submitPayment()">Submit Payment</button>
+      <button onclick="backToHome()">Back</button>
+    </section>
+
+    <!-- Admin Dashboard -->
+    <section id="admin-section" class="hidden">
+      <h2>Admin Dashboard</h2>
+      <p>Manage users, products, and ideas here.</p>
+      <textarea placeholder="Add new marketing idea..."></textarea>
+      <button onclick="submitIdea()">Submit Idea</button>
+      <button onclick="logout()">Logout</button>
+    </section>
+  </main>
+
+  <script>
+    let currentUser = "";
+    let cart = [];
+
+    const subProductMap = {
+      edc: ["EDC Log Book", "Ankara Clothing", "Massa", "Bread", "Bags", "Shoes"],
+      hub: ["Food", "Beverages", "Fruits", "Cakes", "Fast Foods", "Chips", "Fries", "Eggs"],
+      water: ["Bag of Sachet Water", "Bundle of Bottled Water"],
+      press: ["Publishers", "Papers", "Newspapers", "Magazines"],
+      store: ["Students Booklets", "Students File", "Final Year Clearance Forms"]
+    };
+
+    function login() {
+      const userType = document.getElementById("user-type").value;
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      if (username && password) {
+        currentUser = userType;
+        document.getElementById("auth-section").classList.add("hidden");
+        if (userType === "admin") {
+          document.getElementById("admin-section").classList.remove("hidden");
+        } else {
+          document.getElementById("home-section").classList.remove("hidden");
+        }
+      } else {
+        alert("Please enter username and password.");
+      }
+    }
+
+    function register() {
+      const bio = document.getElementById("bio").value;
+      if (bio.trim() === "") {
+        alert("Please fill in your biography.");
+        return;
+      }
+      alert("Registration successful! You can now log in.");
+    }
+
+    function logout() {
+      currentUser = "";
+      cart = [];
+      document.getElementById("auth-section").classList.remove("hidden");
+      document.getElementById("home-section").classList.add("hidden");
+      document.getElementById("sub-section").classList.add("hidden");
+      document.getElementById("payment-section").classList.add("hidden");
+      document.getElementById("admin-section").classList.add("hidden");
+    }
+
+    function showSub(category) {
+      const subTitle = {
+        edc: "NSUK EDC Products",
+        hub: "NSUK Hub Products",
+        water: "NSUK Table Water Products",
+        press: "NSUK Printing Press Products",
+        store: "NSUK Store Products"
+      };
+      document.getElementById("home-section").classList.add("hidden");
+      document.getElementById("sub-section").classList.remove("hidden");
+      document.getElementById("sub-title").innerText = subTitle[category];
+
+      const container = document.getElementById("sub-products");
+      container.innerHTML = "";
+      subProductMap[category].forEach(item => {
+        const card = document.createElement("div");
+        card.className = "sub-card";
+        card.innerHTML = `<p>${item}</p><button onclick="addToCart('${item}')">Add to Cart</button>`;
+        container.appendChild(card);
+      });
+    }
+
+    function addToCart(item) {
+      cart.push(item);
+      alert(`${item} added to cart.`);
+      showPayment();
+    }
+
+    function showPayment() {
+      document.getElementById("sub-section").classList.add("hidden");
+      document.getElementById("payment-section").classList.remove("hidden");
+    }
+
+    function backToHome() {
+      document.getElementById("sub-section").classList.add("hidden");
+      document.getElementById("payment-section").classList.add("hidden");
+      document.getElementById("admin-section").classList.add("hidden");
+      document.getElementById("home-section").classList.remove("hidden");
+    }
+
+    function submitPayment() {
+      alert("Payment submitted successfully!");
+      backToHome();
+    }
+
+    function submitIdea() {
+      alert("Marketing idea submitted!");
+    }
+  </script>
+</body>
+</html>
